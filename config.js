@@ -2,7 +2,7 @@ const { Client, Intents } = require("discord.js");
 
 const BOT_SETTINGS = {
   prefix: "!",
-  token: "OTUxMzI4NDU5MDMwOTI5NDM4.Yil3qw.LhF7q6T9dUbmKKA-3-PetWaH0iY",
+  token: "OTUxMzI4NDU5MDMwOTI5NDM4.Yil3qw.cB2PAmbK3xcpz0tLpt6WyQFqGs4",
   SERVER: {
     ID: "941104117978370069",
   },
