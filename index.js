@@ -11,11 +11,14 @@ const {
   getCommand,
   getAllMembers,
   getUsersLengthByRole,
+  removeReactionMessage,
+  sendBotReactionVerifyMessage,
 } = require("./utils");
 
 client.on("ready", async () => {
   console.log(`${client.user.username} esta preparado!`);
   client.user.setActivity("con mis amigos 😎.");
+  //sendBotReactionVerifyMessage();
 });
 
 client.on("messageCreate", async (message) => {
@@ -96,6 +99,11 @@ client.on("messageReactionAdd", async (reaction, user) => {
     member.roles.add(ROLES.FRENCH_LANGUAGE_ROLE_ID);
     member.roles.add(ROLES.BRAZIL_LANGUAGE_ROLE_ID);
   }
+});
+
+client.on("guildMemberRemove", (member) => {
+  removeReactionMessage(member.user.id);
+  console.log(`El usuario ${member.user.username} abandono el servidor`);
 });
 
 client.login(token);
