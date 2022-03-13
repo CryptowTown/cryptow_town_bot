@@ -80,7 +80,7 @@ const sendBotReactionVerifyMessage = () => {
   // });
 };
 
-const removeReactionMessage = async (user_id) => {
+const removeReactionVerifyMessage = async (user_id) => {
   const sv = getServer();
   sv.channels.fetch(CHANNELS.VERIFICATION_CHANNEL).then((channel) => {
     channel.messages.fetch(MESSAGE_BOT_VERIFICATION).then((message) => {
@@ -100,6 +100,6 @@ module.exports = {
   getAllRoles,
   getUsersByRole,
   getUsersLengthByRole,
-  removeReactionMessage,
+  removeReactionVerifyMessage,
   sendBotReactionVerifyMessage,
 };

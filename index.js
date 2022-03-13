@@ -11,7 +11,7 @@ const {
   getCommand,
   getAllMembers,
   getUsersLengthByRole,
-  removeReactionMessage,
+  removeReactionVerifyMessage,
   sendBotReactionVerifyMessage,
 } = require("./utils");
 
@@ -102,7 +102,7 @@ client.on("messageReactionAdd", async (reaction, user) => {
 });
 
 client.on("guildMemberRemove", (member) => {
-  removeReactionMessage(member.user.id);
+  removeReactionVerifyMessage(member.user.id);
   console.log(`El usuario ${member.user.username} abandono el servidor`);
 });
 
