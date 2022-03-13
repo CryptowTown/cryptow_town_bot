@@ -2,7 +2,7 @@ const { Client, Intents } = require("discord.js");
 
 const BOT_SETTINGS = {
   prefix: "!",
-  token: "OTUxMzI4NDU5MDMwOTI5NDM4.Yil3qw.cB2PAmbK3xcpz0tLpt6WyQFqGs4",
+  token: process.env.TOKEN,
   SERVER: {
     ID: "941104117978370069",
   },
@@ -20,7 +20,7 @@ const BOT_SETTINGS = {
 
   MESSAGE_BOT_VERIFICATION: "952375427341623317", // for users verification
   MESSAGE_BOT_VERIFICATION_EMOJI: "towfirehi", // the emoji name
-  MESSAGE_BOT_VERIFICATION_EMOJI_ID:"<:towfirehi:946865774474186802>",
+  MESSAGE_BOT_VERIFICATION_EMOJI_ID: "<:towfirehi:946865774474186802>",
 };
 
 const client = new Client({
