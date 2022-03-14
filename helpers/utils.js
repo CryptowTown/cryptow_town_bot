@@ -7,15 +7,19 @@ const {
   MESSAGE_BOT_VERIFICATION_EMOJI,
   ROLES,
   MAX_LENGTH_TOW_LOYAL_USERS,
-} = require("./config");
+} = require("../config");
 
-const isCommand = (message = String.prototype) => {
-  return message.startsWith(prefix);
+const isCommand = (message) => {
+  return message.content.startsWith(prefix) && !message.author.bot;
 };
 
-const getCommand = (messaje = String.prototype) => {
-  const [, command] = messaje.split("!");
-  return command.trim();
+const getCommand = (messaje) => {
+  const args = messaje.content.slice(prefix.length).trim().split(/ +/g);
+  const fullCommand = {
+    command: args.shift().toLowerCase(),
+    args,
+  };
+  return fullCommand;
 };
 
 const getServer = () => client.guilds.cache.get(SERVER.ID);
