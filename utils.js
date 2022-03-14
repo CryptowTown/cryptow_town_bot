@@ -5,7 +5,8 @@ const {
   CHANNELS,
   MESSAGE_BOT_VERIFICATION,
   MESSAGE_BOT_VERIFICATION_EMOJI,
-  MESSAGE_BOT_VERIFICATION_EMOJI_ID,
+  ROLES,
+  MAX_LENGTH_TOW_LOYAL_USERS,
 } = require("./config");
 
 const isCommand = (message = String.prototype) => {
@@ -80,16 +81,62 @@ const sendBotReactionVerifyMessage = () => {
   // });
 };
 
-const removeReactionVerifyMessage = async (user_id) => {
+const getChannel = async (channel_id) => {
   const sv = getServer();
-  sv.channels.fetch(CHANNELS.VERIFICATION_CHANNEL).then((channel) => {
-    channel.messages.fetch(MESSAGE_BOT_VERIFICATION).then((message) => {
-      const obj = message.reactions.cache.find((reaction) => {
-        return reaction.emoji.name === MESSAGE_BOT_VERIFICATION_EMOJI;
-      });
-      obj.users.remove(user_id);
-    });
+  const channel = await sv.channels.fetch(channel_id);
+  return channel;
+};
+
+const getMessageFromChannel = async (channel_id, message_id) => {
+  const channel = await getChannel(channel_id);
+  const message = await channel.messages.fetch(message_id);
+  return message;
+};
+
+const removeUserReactionFromMessage = async (
+  channel_id,
+  message_id,
+  user_id,
+  emoji_id
+) => {
+  const message = await getMessageFromChannel(channel_id, message_id);
+  const reaction = message.reactions.cache.find((_reaction) => {
+    return _reaction.emoji.name === emoji_id;
   });
+  reaction.users.remove(user_id);
+};
+
+const removeReactionVerifyMessage = async (user_id) => {
+  removeUserReactionFromMessage(
+    CHANNELS.VERIFICATION_CHANNEL,
+    MESSAGE_BOT_VERIFICATION,
+    user_id,
+    MESSAGE_BOT_VERIFICATION_EMOJI
+  );
+};
+
+const addTownLoyalRoleToNewUsers = async (reaction, user) => {
+  if (
+    reaction.message.channelId === CHANNELS.VERIFICATION_CHANNEL &&
+    reaction.message.id === MESSAGE_BOT_VERIFICATION &&
+    reaction.emoji.name === MESSAGE_BOT_VERIFICATION_EMOJI &&
+    !user.bot
+  ) {
+    const member = await reaction.message.guild.members.fetch(user.id);
+    const townRoyalUsersLength = await getUsersLengthByRole(
+      ROLES.TOW_LOYAL_ROLE_ID
+    );
+
+    if (townRoyalUsersLength <= MAX_LENGTH_TOW_LOYAL_USERS) {
+      member.roles.add(ROLES.TOW_LOYAL_ROLE_ID);
+    } else {
+      member.roles.add(ROLES.VERIFIED_ROLE_ID);
+    }
+
+    for (const ROLE of ROLES.AFTER_VERIFICATION()) {
+      member.roles.add(ROLE);
+    }
+  }
 };
 
 module.exports = {
@@ -102,4 +149,7 @@ module.exports = {
   getUsersLengthByRole,
   removeReactionVerifyMessage,
   sendBotReactionVerifyMessage,
+  addTownLoyalRoleToNewUsers,
+  getChannel,
+  getMessageFromChannel,
 };
