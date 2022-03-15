@@ -1,8 +1,11 @@
-const { Client, Intents } = require("discord.js");
+const { Client, Intents, version } = require("discord.js");
 
 const BOT_SETTINGS = {
   prefix: "!",
-  token: process.env.TOKEN,
+  VERSION: version,
+  token:
+    process.env.TOKEN ||
+    "OTUxMzI4NDU5MDMwOTI5NDM4.Yil3qw.NwbMWw_uHyQqoRbeE6931VN6mjo",
   SERVER: {
     ID: "941104117978370069",
   },
@@ -13,7 +16,7 @@ const BOT_SETTINGS = {
     BRAZIL_LANGUAGE_ROLE_ID: "944672487231344731 ",
     VERIFIED_ROLE_ID: "946843806102356080",
 
-    get AFTER_VERIFICATION() {
+    AFTER_VERIFICATION() {
       return [
         this.FRENCH_LANGUAGE_ROLE_ID,
         this.BRAZIL_LANGUAGE_ROLE_ID,
