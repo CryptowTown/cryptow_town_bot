@@ -3,12 +3,10 @@ const {
   client,
   SERVER,
   CHANNELS,
-  MESSAGE_BOT_CHOOSE_LANGUAGE_ID,
-  MESSAGE_BOT_VERIFICATION_MESSAGE_ID,
-  MESSAGE_BOT_VERIFICATION_EMOJI,
-  ROLES,
-  MAX_LENGTH_TOW_LOYAL_USERS,
+  MESSAGES,
+  EMOJIS,
 } = require("../config");
+const { warn } = require("./logger");
 
 const isCommand = (message) => {
   return message.content.startsWith(prefix) && !message.author.bot;
@@ -52,38 +50,31 @@ const getUsersLengthByRole = async (role_id) => {
   return count.length;
 };
 
-const sendBotReactionVerifyMessage = () => {
+const sendBotReactionVerifyMessage = async () => {
   const sv = getServer();
-  // const verifyChannel = sv.channels.cache.get(CHANNELS.VERIFICATION_CHANNEL);
-  // const verifyMessage = {
-  //   color: 0x0099ff,
-  //   title: "User Verification",
-  //   thumbnail: {
-  //     url: "https://i.imgur.com/sWcAXL6.jpg",
-  //   },
-  //   description: `✨Welcome to Cryptow Town, to verify yourself and enjoy the content of the server we invite you to react with the <:towfirehi:946865774474186802>\n
-  //     In favor of preserving a community with a super nice and healthy environment, we recommend you to read and follow our rules of coexistence, thank you for helping us to preserve the order and harmony of CrypTow Town.
+  const verifyChannel = sv.channels.cache.get(CHANNELS.VERIFICATION_CHANNEL);
+  const verifyMessage = {
+    color: 0x0099ff,
+    title: "User Verification",
+    thumbnail: {
+      url: "https://i.imgur.com/sWcAXL6.jpg",
+    },
+    description: `✨Welcome to Cryptow Town, to verify yourself and enjoy the content of the server we invite you to react with the <:towfirehi:946865774474186802>\n
+      In favor of preserving a community with a super nice and healthy environment, we recommend you to read and follow our rules of coexistence, thank you for helping us to preserve the order and harmony of CrypTow Town.
 
-  //     scroll Rules of peaceful community:
+      scroll Rules of peaceful community:
 
-  //      A community where friendship grows and bonds of friendship are created!
+       A community where friendship grows and bonds of friendship are created!
+       Please be respectful with everyone in our community, and if you are being assaulted in any way, please take a screenshot and go directly to a moderator, in case the moderator is not available you can upload the screenshot to the channel **『🚨』report-user**, we will always be attentive to your needs.
+       Avoid being an author or accomplice of bullying, disrespect, toxicity, racism, misogyny, etc. If you see that any member of the community is violating this rule against you or someone else, send a direct message to a mod or report it to **『🚨』report-user**, we will review the case and do our best to resolve any misunderstanding in the public chat, and fix the situation in the best possible way.
+      `,
+    image: {
+      url: "https://i.imgur.com/sWcAXL6.jpg",
+    },
+  };
 
-  //      Please be respectful with everyone in our community, and if you are being assaulted in any way, please take a screenshot and go directly to a moderator, in case the moderator is not available you can upload the screenshot to the channel **『🚨』report-user**, we will always be attentive to your needs.
-
-  //      Avoid being an author or accomplice of bullying, disrespect, toxicity, racism, misogyny, etc. If you see that any member of the community is violating this rule against you or someone else, send a direct message to a mod or report it to **『🚨』report-user**, we will review the case and do our best to resolve any misunderstanding in the public chat, and fix the situation in the best possible way.
-  //     `,
-  //   image: {
-  //     url: "https://i.imgur.com/sWcAXL6.jpg",
-  //   },
-  // };
-  // verifyChannel.send({ embeds: [verifyMessage] });
-
-  // DESCOMENTAR ESTAS LINEAS Y COMENTAR LAS DE ARRIBA, DESPUES Q EL BOT HAYA ENVIADO EL MENSAJE
-  // sv.channels.fetch(CHANNELS.VERIFICATION_CHANNEL).then((channel) => {
-  //   channel.messages.fetch(MESSAGE_BOT_VERIFICATION_MESSAGE_ID).then((message) => {
-  //     message.react(MESSAGE_BOT_VERIFICATION_EMOJI_ID);
-  //   });
-  // });
+  const message = await verifyChannel.send({ embeds: [verifyMessage] });
+  message.react(EMOJIS.VERIFICATION_EMOJI_ID);
 };
 
 const sendBotChooseLanguageMessage = async () => {
@@ -92,15 +83,31 @@ const sendBotChooseLanguageMessage = async () => {
   const message = await chooseLanguageChannel.send(
     "🌍 Please select the language of your preference."
   );
-  ["🇫🇷", "🇪🇸", "🇧🇷"].forEach((flag) => message.react(flag));
+  [
+    EMOJIS.FRENCH_FLAG_EMOJI,
+    EMOJIS.SPAIN_FLAG_EMOJI,
+    EMOJIS.BRAZIL_FLAG_EMOJI,
+  ].forEach((flag) => message.react(flag));
 };
 
+// without cache
 const getChannel = async (channel_id) => {
   const sv = getServer();
   const channel = await sv.channels.fetch(channel_id);
   return channel;
 };
 
+const existsChannel = async (channel_id) => {
+  const channel = await getChannel(channel_id);
+  return !!channel;
+};
+
+const sendDebugMessage = async (content) => {
+  const debugChannel = await getChannel(CHANNELS.BOT_DEBUG);
+  await debugChannel.send(content);
+};
+
+// without cache
 const getMessageFromChannel = async (channel_id, message_id) => {
   const channel = await getChannel(channel_id);
   const message = await channel.messages.fetch(message_id);
@@ -113,6 +120,10 @@ const removeUserReactionFromMessage = async (
   user_id,
   emoji_id
 ) => {
+  if (!existsChannel(channel_id)) {
+    warn(`The channel "${channel_id}" don't exist!`);
+    return sendDebugMessage(`⚠️ The channel "${channel_id}" don't exist!`);
+  }
   const message = await getMessageFromChannel(channel_id, message_id);
   const reaction = message.reactions.cache.find((_reaction) => {
     return _reaction.emoji.name === emoji_id;
@@ -120,70 +131,29 @@ const removeUserReactionFromMessage = async (
   reaction.users.remove(user_id);
 };
 
-const removeReactionVerifyMessage = async (user_id) => {
-  removeUserReactionFromMessage(
-    CHANNELS.VERIFICATION_CHANNEL,
-    MESSAGE_BOT_VERIFICATION_MESSAGE_ID,
-    user_id,
-    MESSAGE_BOT_VERIFICATION_EMOJI
-  );
-};
+const removeUserReactionsFromMessage = async (
+  channel_id,
+  message_id,
+  user_id,
+  ...emojis_ids
+) => {
+  if (!existsChannel(channel_id)) {
+    warn(`The channel "${channel_id}" don't exist!`);
+    return sendDebugMessage(`⚠️ The channel "${channel_id}" don't exist!`);
+  }
 
-const addTownLoyalRoleToNewUsers = async (reaction, user) => {
-  if (
-    reaction.message.channelId === CHANNELS.VERIFICATION_CHANNEL &&
-    reaction.message.id === MESSAGE_BOT_VERIFICATION_MESSAGE_ID &&
-    reaction.emoji.name === MESSAGE_BOT_VERIFICATION_EMOJI &&
-    !user.bot
-  ) {
-    const member = await reaction.message.guild.members.fetch(user.id);
-    const townRoyalUsersLength = await getUsersLengthByRole(
-      ROLES.TOW_LOYAL_ROLE_ID
+  const message = await getMessageFromChannel(channel_id, message_id);
+  const reactions = message.reactions.cache;
+
+  reactions.forEach((reaction) => {
+    const userIsReacted = reaction.users.cache.some(
+      (user) => user.id === user_id
     );
 
-    if (townRoyalUsersLength <= MAX_LENGTH_TOW_LOYAL_USERS) {
-      member.roles.add(ROLES.TOW_LOYAL_ROLE_ID);
-    } else {
-      member.roles.add(ROLES.VERIFIED_ROLE_ID);
+    if (userIsReacted && emojis_ids.includes(reaction.emoji.name)) {
+      reaction.users.remove(user_id);
     }
-
-    member.roles.add(ROLES.AFTER_VERIFICATION());
-  }
-};
-
-const addLanguageRole = async (reaction, user) => {
-  if (
-    reaction.message.channelId === CHANNELS.CHOOSE_LANGUAGE &&
-    reaction.message.id === MESSAGE_BOT_CHOOSE_LANGUAGE_ID &&
-    !user.bot
-  ) {
-    const member = await reaction.message.guild.members.fetch(user.id);
-    switch (reaction.emoji.name) {
-      case "🇫🇷":
-        if (member.roles.cache.has(ROLES.FRENCH_LANGUAGE_ROLE_ID)) {
-          await member.roles.remove(ROLES.FRENCH_LANGUAGE_ROLE_ID);
-        } else {
-          await member.roles.add(ROLES.FRENCH_LANGUAGE_ROLE_ID);
-        }
-        break;
-
-      case "🇪🇸":
-        if (member.roles.cache.has(ROLES.SPANISH_LANGUAGE_ROLE_ID)) {
-          await member.roles.remove(ROLES.SPANISH_LANGUAGE_ROLE_ID);
-        } else {
-          await member.roles.add(ROLES.SPANISH_LANGUAGE_ROLE_ID);
-        }
-        break;
-
-      case "🇧🇷":
-        if (member.roles.cache.has(ROLES.BRAZIL_LANGUAGE_ROLE_ID)) {
-          await member.roles.remove(ROLES.BRAZIL_LANGUAGE_ROLE_ID);
-        } else {
-          await member.roles.add(ROLES.BRAZIL_LANGUAGE_ROLE_ID);
-        }
-        break;
-    }
-  }
+  });
 };
 
 module.exports = {
@@ -194,11 +164,12 @@ module.exports = {
   getAllRoles,
   getUsersByRole,
   getUsersLengthByRole,
-  removeReactionVerifyMessage,
   sendBotReactionVerifyMessage,
-  addTownLoyalRoleToNewUsers,
-  addLanguageRole,
+  removeUserReactionFromMessage,
+  removeUserReactionsFromMessage,
   getChannel,
+  existsChannel,
+  sendDebugMessage,
   getMessageFromChannel,
   sendBotChooseLanguageMessage,
 };

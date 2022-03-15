@@ -8,12 +8,12 @@ const commandFiles = fs
 const Discord = require("discord.js");
 const { client, token, VERSION } = require("./config");
 const { success, error, warn } = require("./helpers/logger");
+
+const messageCreate = require("./handlers/messages");
+const removeUser = require("./handlers/removeUsers");
+const messageReaction = require("./handlers/messageReaction");
+
 const {
-  isCommand,
-  getCommand,
-  removeReactionVerifyMessage,
-  addTownLoyalRoleToNewUsers,
-  addLanguageRole,
   sendBotReactionVerifyMessage,
   sendBotChooseLanguageMessage,
 } = require("./helpers/utils");
@@ -49,43 +49,20 @@ for (const file of commandFiles) {
 }
 
 client.on("messageCreate", async (message) => {
-  if (isCommand(message)) {
-    const obj = getCommand(message);
-    const command = client.commands.find((c) => {
-      return (
-        c.name === obj.command || (c.alias && c.alias.includes(obj.command))
-      );
-    });
-    if (!command) {
-      await message.reply({
-        content: "The command dont exists!",
-      });
-    }
-
-    try {
-      await command.execute(message, client, obj.args);
-    } catch (error) {
-      await message.reply({
-        content: "There was an error while executing this command!",
-        ephemeral: true,
-      });
-      error(`El comando "${obj.command}" fallo al ejecutarse`);
-    }
-  }
+  messageCreate(message);
 });
 
 client.on("messageReactionAdd", async (reaction, user) => {
-  addTownLoyalRoleToNewUsers(reaction, user);
-  addLanguageRole(reaction, user);
+  messageReaction(reaction, user);
 });
 
 client.on("messageReactionRemove", async (reaction, user) => {
-  addLanguageRole(reaction, user);
+  messageReaction(reaction, user);
 });
 
 client.on("guildMemberRemove", (member) => {
-  removeReactionVerifyMessage(member.user.id);
-  console.log(`El usuario ${member.user.username} abandono el servidor`);
+  removeUser(member);
+  warn(`El usuario ${member.user.username} abandono el servidor`);
 });
 
 client.login(token);
