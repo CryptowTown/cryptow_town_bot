@@ -3,7 +3,8 @@ const {
   client,
   SERVER,
   CHANNELS,
-  MESSAGE_BOT_VERIFICATION,
+  MESSAGE_BOT_CHOOSE_LANGUAGE_ID,
+  MESSAGE_BOT_VERIFICATION_MESSAGE_ID,
   MESSAGE_BOT_VERIFICATION_EMOJI,
   ROLES,
   MAX_LENGTH_TOW_LOYAL_USERS,
@@ -79,10 +80,19 @@ const sendBotReactionVerifyMessage = () => {
 
   // DESCOMENTAR ESTAS LINEAS Y COMENTAR LAS DE ARRIBA, DESPUES Q EL BOT HAYA ENVIADO EL MENSAJE
   // sv.channels.fetch(CHANNELS.VERIFICATION_CHANNEL).then((channel) => {
-  //   channel.messages.fetch(MESSAGE_BOT_VERIFICATION).then((message) => {
+  //   channel.messages.fetch(MESSAGE_BOT_VERIFICATION_MESSAGE_ID).then((message) => {
   //     message.react(MESSAGE_BOT_VERIFICATION_EMOJI_ID);
   //   });
   // });
+};
+
+const sendBotChooseLanguageMessage = async () => {
+  const sv = getServer();
+  const chooseLanguageChannel = sv.channels.cache.get(CHANNELS.CHOOSE_LANGUAGE);
+  const message = await chooseLanguageChannel.send(
+    "🌍 Please select the language of your preference."
+  );
+  ["🇫🇷", "🇪🇸", "🇧🇷"].forEach((flag) => message.react(flag));
 };
 
 const getChannel = async (channel_id) => {
@@ -113,7 +123,7 @@ const removeUserReactionFromMessage = async (
 const removeReactionVerifyMessage = async (user_id) => {
   removeUserReactionFromMessage(
     CHANNELS.VERIFICATION_CHANNEL,
-    MESSAGE_BOT_VERIFICATION,
+    MESSAGE_BOT_VERIFICATION_MESSAGE_ID,
     user_id,
     MESSAGE_BOT_VERIFICATION_EMOJI
   );
@@ -122,7 +132,7 @@ const removeReactionVerifyMessage = async (user_id) => {
 const addTownLoyalRoleToNewUsers = async (reaction, user) => {
   if (
     reaction.message.channelId === CHANNELS.VERIFICATION_CHANNEL &&
-    reaction.message.id === MESSAGE_BOT_VERIFICATION &&
+    reaction.message.id === MESSAGE_BOT_VERIFICATION_MESSAGE_ID &&
     reaction.emoji.name === MESSAGE_BOT_VERIFICATION_EMOJI &&
     !user.bot
   ) {
@@ -137,8 +147,41 @@ const addTownLoyalRoleToNewUsers = async (reaction, user) => {
       member.roles.add(ROLES.VERIFIED_ROLE_ID);
     }
 
-    for (const ROLE of ROLES.AFTER_VERIFICATION()) {
-      member.roles.add(ROLE);
+    member.roles.add(ROLES.AFTER_VERIFICATION());
+  }
+};
+
+const addLanguageRole = async (reaction, user) => {
+  if (
+    reaction.message.channelId === CHANNELS.CHOOSE_LANGUAGE &&
+    reaction.message.id === MESSAGE_BOT_CHOOSE_LANGUAGE_ID &&
+    !user.bot
+  ) {
+    const member = await reaction.message.guild.members.fetch(user.id);
+    switch (reaction.emoji.name) {
+      case "🇫🇷":
+        if (member.roles.cache.has(ROLES.FRENCH_LANGUAGE_ROLE_ID)) {
+          await member.roles.remove(ROLES.FRENCH_LANGUAGE_ROLE_ID);
+        } else {
+          await member.roles.add(ROLES.FRENCH_LANGUAGE_ROLE_ID);
+        }
+        break;
+
+      case "🇪🇸":
+        if (member.roles.cache.has(ROLES.SPANISH_LANGUAGE_ROLE_ID)) {
+          await member.roles.remove(ROLES.SPANISH_LANGUAGE_ROLE_ID);
+        } else {
+          await member.roles.add(ROLES.SPANISH_LANGUAGE_ROLE_ID);
+        }
+        break;
+
+      case "🇧🇷":
+        if (member.roles.cache.has(ROLES.BRAZIL_LANGUAGE_ROLE_ID)) {
+          await member.roles.remove(ROLES.BRAZIL_LANGUAGE_ROLE_ID);
+        } else {
+          await member.roles.add(ROLES.BRAZIL_LANGUAGE_ROLE_ID);
+        }
+        break;
     }
   }
 };
@@ -154,6 +197,8 @@ module.exports = {
   removeReactionVerifyMessage,
   sendBotReactionVerifyMessage,
   addTownLoyalRoleToNewUsers,
+  addLanguageRole,
   getChannel,
   getMessageFromChannel,
+  sendBotChooseLanguageMessage,
 };

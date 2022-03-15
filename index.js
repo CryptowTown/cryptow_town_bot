@@ -6,16 +6,16 @@ const commandFiles = fs
   .filter((file) => file.endsWith(".js"));
 
 const Discord = require("discord.js");
-const { client, token, ROLES, VERSION } = require("./config");
+const { client, token, VERSION } = require("./config");
 const { success, error, warn } = require("./helpers/logger");
 const {
   isCommand,
   getCommand,
-  getAllMembers,
-  getUsersLengthByRole,
   removeReactionVerifyMessage,
   addTownLoyalRoleToNewUsers,
+  addLanguageRole,
   sendBotReactionVerifyMessage,
+  sendBotChooseLanguageMessage,
 } = require("./helpers/utils");
 
 client.commands = new Discord.Collection();
@@ -30,6 +30,7 @@ client.on("ready", async () => {
   success(`${client.user.username} esta preparado!`);
   success(`Actualmente serviendo ${client.guilds.cache.size} severs!`);
   client.user.setActivity("con mis amigos 😎.");
+  //sendBotChooseLanguageMessage();
   //sendBotReactionVerifyMessage();
 });
 
@@ -47,28 +48,9 @@ for (const file of commandFiles) {
   client.commands.set(command.name, command);
 }
 
-// client.on("interactionCreate", async (interaction) => {
-//   if (!interaction.isCommand()) return;
-
-//   const command = client.commands.get(interaction.commandName);
-
-//   if (!command) return;
-
-//   try {
-//     await command.execute(interaction);
-//   } catch (error) {
-//     console.error(error);
-//     await interaction.reply({
-//       content: "There was an error while executing this command!",
-//       ephemeral: true,
-//     });
-//   }
-// });
-
 client.on("messageCreate", async (message) => {
   if (isCommand(message)) {
     const obj = getCommand(message);
-    //const command = client.commands.get(obj.command);
     const command = client.commands.find((c) => {
       return (
         c.name === obj.command || (c.alias && c.alias.includes(obj.command))
@@ -89,27 +71,16 @@ client.on("messageCreate", async (message) => {
       });
       error(`El comando "${obj.command}" fallo al ejecutarse`);
     }
-    // switch (obj.command) {
-    //   case "test":
-    //     message.reply(`Test command with: ${obj.args.join(", ")} arguments`);
-    //     //message.react("🤔");
-    //     break;
-
-    //   case "info":
-    //     const tpl = `
-    //       Información básica del servidor\n:
-    //       Total usuarios: ${(await getAllMembers()).size}\n
-    //       Town Loyals: ${await getUsersLengthByRole(ROLES.TOW_LOYAL_ROLE_ID)}
-    //     `;
-
-    //     message.reply(tpl);
-    //     break;
-    // }
   }
 });
 
 client.on("messageReactionAdd", async (reaction, user) => {
   addTownLoyalRoleToNewUsers(reaction, user);
+  addLanguageRole(reaction, user);
+});
+
+client.on("messageReactionRemove", async (reaction, user) => {
+  addLanguageRole(reaction, user);
 });
 
 client.on("guildMemberRemove", (member) => {
