@@ -5,14 +5,14 @@ const {
 } = require("../helpers/utils");
 
 const removeUser = async (member) => {
-  removeUserReactionFromMessage(
+  await removeUserReactionFromMessage(
     CHANNELS.VERIFICATION_CHANNEL,
     MESSAGES.BOT_VERIFICATION_MESSAGE_ID,
     member.user.id,
-    MESSAGES.BOT_VERIFICATION_EMOJI
+    EMOJIS.VERIFICATION_EMOJI
   );
 
-  removeUserReactionsFromMessage(
+  await removeUserReactionsFromMessage(
     CHANNELS.CHOOSE_LANGUAGE,
     MESSAGES.BOT_CHOOSE_LANGUAGE_ID,
     member.user.id,

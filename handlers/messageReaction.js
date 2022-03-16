@@ -5,8 +5,6 @@ const {
   MAX_LENGTH_TOW_LOYAL_USERS,
   CHANNELS,
 } = require("../config");
-const { warn } = require("../helpers/logger");
-
 const { getUsersLengthByRole } = require("../helpers/utils");
 
 const messageReaction = (reaction, user) => {
@@ -41,17 +39,12 @@ const addTownLoyalRoleToNewUsers = async (reaction, user) => {
   } else {
     member.roles.add(ROLES.VERIFIED_ROLE_ID);
   }
-  member.roles.add(ROLES.AFTER_VERIFICATION());
+
+  const otherRoles = ROLES.AFTER_VERIFICATION();
+  if (otherRoles.length) member.roles.add(otherRoles);
 };
 
 const addLanguageRole = async (reaction, user) => {
-  if (reaction.message.reactions.cache.size > 3) {
-    await reaction.remove();
-    return warn(
-      `The reaction ${reaction.emoji.name} to message language is not allowed`
-    );
-  }
-
   const member = await reaction.message.guild.members.fetch(user.id);
   const addRoleFlag = async (ROLE) => {
     if (member.roles.cache.has(ROLE)) return await member.roles.remove(ROLE);

@@ -6,7 +6,14 @@ const commandFiles = fs
   .filter((file) => file.endsWith(".js"));
 
 const Discord = require("discord.js");
-const { client, token, VERSION } = require("./config");
+const {
+  client,
+  token,
+  VERSION,
+  CHANNELS,
+  MESSAGES,
+  EMOJIS,
+} = require("./config");
 const { success, error, warn } = require("./helpers/logger");
 
 const messageCreate = require("./handlers/messages");
@@ -16,14 +23,15 @@ const messageReaction = require("./handlers/messageReaction");
 const {
   sendBotReactionVerifyMessage,
   sendBotChooseLanguageMessage,
+  getMessageFromChannel,
 } = require("./helpers/utils");
 
 client.commands = new Discord.Collection();
 
-process.on("unhandledRejection", (err) => {
-  error(err);
-  process.exit(1);
-});
+// process.on("unhandledRejection", (err) => {
+//   error(err);
+//   process.exit(1);
+// });
 
 client.on("ready", async () => {
   success(`Versión de node: ${process.version} y DiscordJS: v${VERSION}`);
@@ -34,10 +42,10 @@ client.on("ready", async () => {
   //sendBotReactionVerifyMessage();
 });
 
-client.on("error", (err) => {
-  error(err);
-  process.exit(1);
-});
+// client.on("error", (err) => {
+//   error(err);
+//   process.exit(1);
+// });
 
 client.on("disconnect", () => {
   warn(`${client.user.username} se desconecto!`);
@@ -52,6 +60,10 @@ client.on("messageCreate", async (message) => {
   messageCreate(message);
 });
 
+client.on("guildMemberAdd", async (member) => {
+  warn(`El usuario ${member.user.username} entro al servidor`);
+});
+
 client.on("messageReactionAdd", async (reaction, user) => {
   messageReaction(reaction, user);
 });
@@ -60,8 +72,7 @@ client.on("messageReactionRemove", async (reaction, user) => {
   messageReaction(reaction, user);
 });
 
-client.on("guildMemberRemove", (member) => {
-  removeUser(member);
+client.on("guildMemberRemove", async (member) => {
   warn(`El usuario ${member.user.username} abandono el servidor`);
 });
 

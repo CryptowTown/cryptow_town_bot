@@ -1,5 +1,5 @@
 const { client } = require("../config");
-const { warn } = require("../helpers/logger");
+const { warn, error } = require("../helpers/logger");
 const { isCommand, getCommand } = require("../helpers/utils");
 
 async function messageCreate(message) {
@@ -20,12 +20,13 @@ async function messageCreate(message) {
 
     try {
       await command.execute(message, client, obj.args);
-    } catch (error) {
+    } catch (err) {
       await message.reply({
         content: "❌ There was an error while executing this command!",
         ephemeral: true,
       });
       error(`❌ The command "${obj.command}" fails to execute!`);
+      error(err.message);
     }
   }
 }

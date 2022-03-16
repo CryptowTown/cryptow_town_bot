@@ -5,7 +5,7 @@ const BOT_SETTINGS = {
   VERSION: version,
   token:
     process.env.TOKEN ||
-    "OTUzMzc2OTAwOTA5MjU2NzA0.YjDrbg.kS73DgPMUvczDUgSY3XYm11vK_4",
+    "OTUzMzc2OTAwOTA5MjU2NzA0.YjDrbg.GPhtNfLD_VgrUuMMK8mQCrDtOhg",
   SERVER: {
     ID: "941104117978370069",
   },
@@ -33,10 +33,8 @@ const BOT_SETTINGS = {
   },
 
   MESSAGES: {
-    BOT_CHOOSE_LANGUAGE_ID: "953111721961218068",
-    BOT_VERIFICATION_MESSAGE_ID: "952375427341623317", // for users verification
-    BOT_VERIFICATION_EMOJI: "towfirehi", // the emoji name
-    BOT_VERIFICATION_EMOJI_ID: "<:towfirehi:946865774474186802>",
+    BOT_CHOOSE_LANGUAGE_ID: "953428685627744326",
+    BOT_VERIFICATION_MESSAGE_ID: "953429529244876870", // for users verification
   },
 
   EMOJIS: {
@@ -54,8 +52,10 @@ const BOT_SETTINGS = {
 const client = new Client({
   intents: [
     "GUILD_MEMBERS",
+    "GUILD_PRESENCES",
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_PRESENCES,
     Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
   ],
   partials: ["MESSAGE", "CHANNEL", "REACTION", "GUILD_MEMBER"],
