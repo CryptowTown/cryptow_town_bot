@@ -5,6 +5,7 @@ const {
   MAX_LENGTH_TOW_LOYAL_USERS,
   CHANNELS,
 } = require("../config");
+const { warn } = require("../helpers/logger");
 const { getUsersLengthByRole } = require("../helpers/utils");
 
 const messageReaction = (reaction, user) => {
@@ -30,6 +31,13 @@ const messageReaction = (reaction, user) => {
 
 const addTownLoyalRoleToNewUsers = async (reaction, user) => {
   const member = await reaction.message.guild.members.fetch(user.id);
+  const users = await reaction.users.fetch();
+  const userIsReacted = users.find(
+    (_user) => _user.id === user.id && !user.bot
+  );
+
+  if (userIsReacted) reaction.users.remove(userIsReacted.id);
+  
   const townRoyalUsersLength = await getUsersLengthByRole(
     ROLES.TOW_LOYAL_ROLE_ID
   );
