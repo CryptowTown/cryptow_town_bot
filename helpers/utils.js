@@ -29,6 +29,12 @@ const getAllMembers = async () => {
   return members;
 };
 
+const getMember = async (member_id) => {
+  const sv = await getServer();
+  const member = await sv.members.fetch(member_id);
+  return member;
+};
+
 const getAllRoles = async () => {
   const sv = await getServer();
   const roles = await sv.roles.fetch();
@@ -120,43 +126,34 @@ const removeUserReactionFromMessage = async (
   channel_id,
   message_id,
   user_id,
-  emoji_id
 ) => {
   if (!existsChannel(channel_id)) {
     warn(`The channel "${channel_id}" don't exist!`);
     return sendDebugMessage(`⚠️ The channel "${channel_id}" don't exist!`);
   }
   const message = await getMessageFromChannel(channel_id, message_id);
-  const reaction = message.reactions.cache.find((_reaction) => {
-    return _reaction.emoji.name === emoji_id;
+  
+  message.reactions.cache.forEach((reaction) => {
+    reaction.users.remove(user_id);
   });
-  reaction.users.remove(user_id);
 };
 
 const removeUserReactionsFromMessage = async (
   channel_id,
   message_id,
-  user_id,
-  ...emojis_ids
+  user_id
 ) => {
   if (!existsChannel(channel_id)) {
     warn(`The channel "${channel_id}" don't exist!`);
     return sendDebugMessage(`⚠️ The channel "${channel_id}" don't exist!`);
   }
-
   const message = await getMessageFromChannel(channel_id, message_id);
   const reactions = message.reactions.cache;
 
   reactions.forEach(async (reaction) => {
     const usersReactions = await reaction.users.fetch();
-
     const userIsReacted = usersReactions.some((user) => user.id === user_id);
-    // console.log({usersReactions, userIsReacted})
-    // console.log(emojis_ids.includes(reaction.emoji.name))
-
-    if (userIsReacted) {
-      reaction.users.remove(user_id);
-    }
+    if (userIsReacted) reaction.users.remove(user_id);
   });
 };
 
@@ -164,6 +161,7 @@ module.exports = {
   isCommand,
   getCommand,
   getServer,
+  getMember,
   getAllMembers,
   getAllRoles,
   getUsersByRole,

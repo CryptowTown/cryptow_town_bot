@@ -13,6 +13,7 @@ const {
   CHANNELS,
   MESSAGES,
   EMOJIS,
+  SERVER,
 } = require("./config");
 const { success, error, warn } = require("./helpers/logger");
 
@@ -23,9 +24,11 @@ const messageReaction = require("./handlers/messageReaction");
 const {
   sendBotReactionVerifyMessage,
   sendBotChooseLanguageMessage,
-  getMessageFromChannel,
 } = require("./helpers/utils");
 
+const { info } = require("console");
+
+let leavingUserId = null;
 client.commands = new Discord.Collection();
 
 // process.on("unhandledRejection", (err) => {
@@ -64,16 +67,23 @@ client.on("guildMemberAdd", async (member) => {
   warn(`El usuario ${member.user.username} entro al servidor`);
 });
 
+client.on("guildMemberRemove", async (member) => {
+  warn(`El usuario ${member.user.username} abandono el servidor`);
+  leavingUserId = member.user.id;
+
+  removeUser(member);
+});
+
 client.on("messageReactionAdd", async (reaction, user) => {
+  info(`El usuario ${user.username} reacciono a un mensaje`);
   messageReaction(reaction, user);
 });
 
 client.on("messageReactionRemove", async (reaction, user) => {
-  messageReaction(reaction, user);
-});
+  info(`El usuario ${user.username} des-reacciono a un mensaje`);
+  if (user.id === leavingUserId) return;
 
-client.on("guildMemberRemove", async (member) => {
-  warn(`El usuario ${member.user.username} abandono el servidor`);
+  messageReaction(reaction, user);
 });
 
 client.login(token);

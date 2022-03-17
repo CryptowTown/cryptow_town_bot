@@ -1,4 +1,4 @@
-const { CHANNELS, MESSAGES, EMOJIS } = require("../config");
+const { CHANNELS, MESSAGES } = require("../config");
 const {
   removeUserReactionFromMessage,
   removeUserReactionsFromMessage,
@@ -8,15 +8,13 @@ const removeUser = async (member) => {
   await removeUserReactionFromMessage(
     CHANNELS.VERIFICATION_CHANNEL,
     MESSAGES.BOT_VERIFICATION_MESSAGE_ID,
-    member.user.id,
-    EMOJIS.VERIFICATION_EMOJI
+    member.user.id
   );
 
   await removeUserReactionsFromMessage(
     CHANNELS.CHOOSE_LANGUAGE,
     MESSAGES.BOT_CHOOSE_LANGUAGE_ID,
-    member.user.id,
-    Object.values(EMOJIS.FLAGS)
+    member.user.id
   );
 };
 
