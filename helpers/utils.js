@@ -6,7 +6,7 @@ const {
   MESSAGES,
   EMOJIS,
 } = require("../config");
-const { warn } = require("./logger");
+const { warn, error } = require("./logger");
 
 const isCommand = (message) => {
   return message.content.startsWith(prefix) && !message.author.bot;
@@ -86,23 +86,32 @@ const sendBotReactionVerifyMessage = async () => {
 };
 
 const sendBotChooseLanguageMessage = async () => {
-  const sv = await getServer();
-  const chooseLanguageChannel = sv.channels.cache.get(CHANNELS.CHOOSE_LANGUAGE);
-  const message = await chooseLanguageChannel.send(
-    "🌍 Please select the language of your preference."
-  );
-  [
-    EMOJIS.FLAGS.FRENCH_FLAG_EMOJI,
-    EMOJIS.FLAGS.SPAIN_FLAG_EMOJI,
-    EMOJIS.FLAGS.BRAZIL_FLAG_EMOJI,
-  ].forEach((flag) => message.react(flag));
+  // const message = await getMessageFromChannel(
+  //   CHANNELS.CHOOSE_LANGUAGE,
+  //   MESSAGES.BOT_CHOOSE_LANGUAGE_ID
+  // );
+  // const sv = await getServer();
+  // const chooseLanguageChannel = sv.channels.cache.get(CHANNELS.CHOOSE_LANGUAGE);
+  // const message = await chooseLanguageChannel.send(
+  //   "🌍 Please select the language of your preference."
+  // );
+  // [
+  //   EMOJIS.FLAGS.FRENCH_FLAG_EMOJI,
+  //   EMOJIS.FLAGS.SPAIN_FLAG_EMOJI,
+  //   EMOJIS.FLAGS.BRAZIL_FLAG_EMOJI,
+  // ].forEach((flag) => message.react(flag));
+ // message.react(EMOJIS.FLAGS.BRAZIL_FLAG_EMOJI);
 };
 
 // without cache
 const getChannel = async (channel_id) => {
-  const sv = await getServer();
-  const channel = await sv.channels.fetch(channel_id);
-  return channel;
+  try {
+    const sv = await getServer();
+    const channel = await sv.channels.fetch(channel_id);
+    return channel;
+  } catch (err) {
+    error(err.message, err);
+  }
 };
 
 const existsChannel = async (channel_id) => {
@@ -117,25 +126,32 @@ const sendDebugMessage = async (content) => {
 
 // without cache
 const getMessageFromChannel = async (channel_id, message_id) => {
-  const channel = await getChannel(channel_id);
-  const message = await channel.messages.fetch(message_id);
-  return message;
+  try {
+    const channel = await getChannel(channel_id);
+    const message = await channel.messages.fetch(message_id);
+    return message;
+  } catch (err) {
+    error(err.message, err);
+  }
 };
 
 const removeUserReactionFromMessage = async (
   channel_id,
   message_id,
-  user_id,
+  user_id
 ) => {
   if (!existsChannel(channel_id)) {
     warn(`The channel "${channel_id}" don't exist!`);
     return sendDebugMessage(`⚠️ The channel "${channel_id}" don't exist!`);
   }
-  const message = await getMessageFromChannel(channel_id, message_id);
-  
-  message.reactions.cache.forEach((reaction) => {
-    reaction.users.remove(user_id);
-  });
+  try {
+    const message = await getMessageFromChannel(channel_id, message_id);
+    message.reactions.cache.forEach((reaction) => {
+      reaction.users.remove(user_id);
+    });
+  } catch (err) {
+    error(err.message, err);
+  }
 };
 
 const removeUserReactionsFromMessage = async (
@@ -147,14 +163,18 @@ const removeUserReactionsFromMessage = async (
     warn(`The channel "${channel_id}" don't exist!`);
     return sendDebugMessage(`⚠️ The channel "${channel_id}" don't exist!`);
   }
-  const message = await getMessageFromChannel(channel_id, message_id);
-  const reactions = message.reactions.cache;
+  try {
+    const message = await getMessageFromChannel(channel_id, message_id);
+    const reactions = message.reactions.cache;
 
-  reactions.forEach(async (reaction) => {
-    const usersReactions = await reaction.users.fetch();
-    const userIsReacted = usersReactions.some((user) => user.id === user_id);
-    if (userIsReacted) reaction.users.remove(user_id);
-  });
+    reactions.forEach(async (reaction) => {
+      const usersReactions = await reaction.users.fetch();
+      const userIsReacted = usersReactions.some((user) => user.id === user_id);
+      if (userIsReacted) reaction.users.remove(user_id);
+    });
+  } catch (err) {
+    error(err.message, err);
+  }
 };
 
 module.exports = {

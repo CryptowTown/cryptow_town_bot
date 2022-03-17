@@ -27,14 +27,15 @@ const {
 } = require("./helpers/utils");
 
 const { info } = require("console");
-
-let leavingUserId = null;
 client.commands = new Discord.Collection();
 
-// process.on("unhandledRejection", (err) => {
-//   error(err);
-//   process.exit(1);
-// });
+process.on("unhandledRejection", (err) => {
+  error(err.message, err);
+});
+
+process.on("uncaughtException", (err) => {
+  error(err.message, err);
+});
 
 client.on("ready", async () => {
   success(`Versión de node: ${process.version} y DiscordJS: v${VERSION}`);
@@ -44,11 +45,6 @@ client.on("ready", async () => {
   //sendBotChooseLanguageMessage();
   //sendBotReactionVerifyMessage();
 });
-
-// client.on("error", (err) => {
-//   error(err);
-//   process.exit(1);
-// });
 
 client.on("disconnect", () => {
   warn(`${client.user.username} se desconecto!`);
@@ -69,8 +65,6 @@ client.on("guildMemberAdd", async (member) => {
 
 client.on("guildMemberRemove", async (member) => {
   warn(`El usuario ${member.user.username} abandono el servidor`);
-  leavingUserId = member.user.id;
-
   removeUser(member);
 });
 
@@ -81,8 +75,6 @@ client.on("messageReactionAdd", async (reaction, user) => {
 
 client.on("messageReactionRemove", async (reaction, user) => {
   info(`El usuario ${user.username} des-reacciono a un mensaje`);
-  if (user.id === leavingUserId) return;
-
   messageReaction(reaction, user);
 });
 

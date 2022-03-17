@@ -5,25 +5,36 @@ const {
   MAX_LENGTH_TOW_LOYAL_USERS,
   CHANNELS,
 } = require("../config");
-const { getUsersLengthByRole } = require("../helpers/utils");
+const { error, warn } = require("../helpers/logger");
+const { getUsersLengthByRole, getMember } = require("../helpers/utils");
 
-const messageReaction = (reaction, user) => {
+const messageReaction = async (reaction, user) => {
   if (!user.bot) {
-    const channelId = reaction.message.channelId;
-    const messageId = reaction.message.id;
-    const emojiName = reaction.emoji.name;
+    try {
+      const channelId = reaction.message.channelId;
+      const messageId = reaction.message.id;
+      const emojiName = reaction.emoji.name;
+      const userExists = await getMember(user.id);
 
-    if (
-      channelId === CHANNELS.VERIFICATION_CHANNEL &&
-      messageId === MESSAGES.BOT_VERIFICATION_MESSAGE_ID &&
-      emojiName === EMOJIS.VERIFICATION_EMOJI
-    ) {
-      addTownLoyalRoleToNewUsers(reaction, user);
-    } else if (
-      channelId === CHANNELS.CHOOSE_LANGUAGE &&
-      messageId === MESSAGES.BOT_CHOOSE_LANGUAGE_ID
-    ) {
-      addLanguageRole(reaction, user);
+      if (!userExists) {
+        warn(`El usuario ${user.username} no existe en el servidor`);
+        return;
+      }
+
+      if (
+        channelId === CHANNELS.VERIFICATION_CHANNEL &&
+        messageId === MESSAGES.BOT_VERIFICATION_MESSAGE_ID &&
+        emojiName === EMOJIS.VERIFICATION_EMOJI
+      ) {
+        addTownLoyalRoleToNewUsers(reaction, user);
+      } else if (
+        channelId === CHANNELS.CHOOSE_LANGUAGE &&
+        messageId === MESSAGES.BOT_CHOOSE_LANGUAGE_ID
+      ) {
+        addLanguageRole(reaction, user);
+      }
+    } catch (err) {
+      error(err.message, err);
     }
   }
 };
