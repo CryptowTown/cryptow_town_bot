@@ -75,7 +75,16 @@ client.on("messageReactionAdd", async (reaction, user) => {
 
 client.on("messageReactionRemove", async (reaction, user) => {
   info(`El usuario ${user.username} des-reacciono a un mensaje`);
-  messageReaction(reaction, user);
+
+  const userExists = client.guilds.cache
+    .get(SERVER.ID)
+    .members.cache.get(user.id);
+
+  if (!!userExists) {
+    messageReaction(reaction, user);
+  } else {
+    warn("El usuario no existe");
+  }
 });
 
 client.login(token);
