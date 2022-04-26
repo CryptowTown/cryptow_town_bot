@@ -12,7 +12,7 @@ const {
   VERSION,
   CHANNELS,
   MESSAGES,
-  EMOJIS,
+  EMOJIS, 
   SERVER,
 } = require("./config");
 const { success, error, warn } = require("./helpers/logger");
